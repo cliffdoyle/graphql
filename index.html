@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GraphQL Profile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>GraphQL Profile Login</h1>
+        <form id="login-form">
+            <label for="credentials">Username or Email</label>
+            <input type="text" id="credentials" name="credentials" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Sign In</button>
+        </form>
+        <div id="error-message" class="error"></div>
+    </div>
+    <!-- We link the JavaScript file at the end of the body -->
+    <script src="app.js"></script>
+</body>
+</html>
