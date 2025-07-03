@@ -36,12 +36,15 @@ function handleLoginPage(){
                 throw new Error(errorData.error) || 'Invalid credentials'
             }
             //If login is successful, we get a JWT
-             const jwt = await response.text();
+             const rawJwt = await response.text();
 
              //Store the JWT. sessionStorage is cleared when the browser is closed.
              //localStorage persists until cleared manually
-             sessionStorage.setItem('jwt',jwt)
-             console.log("jwt:",jwt)
+
+             // Aggressively remove any quotation marks from the start and end of the string
+const cleanJwt = rawJwt.replace(/"/g, ''); 
+             sessionStorage.setItem('jwt',cleanJwt)
+          console.log("Cleaned JWT being saved:", cleanJwt);
 
              //Redirect to the profile page
              window.location.href='profile.html'
@@ -54,10 +57,6 @@ function handleLoginPage(){
     
 }
 
-function handleProfilePage() {
-    console.log("Welcome to your profile!");
-    
-}
 
 
 async function fetchGraphQl(query) {
@@ -67,12 +66,12 @@ async function fetchGraphQl(query) {
         window.location.href = 'index.html';
         return;
     }
-
+    
     try{
         const response = await fetch('https://learn.zone01kisumu.ke/api/graphql-engine/v1/graphql', {
             method: 'POST',
             headers: {
-                'content-Type':'application/json',
+                'Content-Type':'application/json',
                 'Authorization':`Bearer ${jwt}`
             },
             body: JSON.stringify({query:query})
@@ -81,7 +80,7 @@ async function fetchGraphQl(query) {
         if (!response.ok){
             throw new Error(`HTTP error! status: ${response.status}`)
         }
-
+        
         const jsonResponse = await response.json()
         if (jsonResponse.errors){
             // Handle GraphQL-specific errors
@@ -92,14 +91,75 @@ async function fetchGraphQl(query) {
                 window.location.href = 'index.html';
             }
             throw new Error('A GraphQL error occurred');
-
+            
         }
-
+        
         return jsonResponse.data;
     } catch (error){
         console.error('Error fetching GraphQl data:', error)
-          // Maybe redirect to login if there's a fatal error
+        // Maybe redirect to login if there's a fatal error
         window.location.href = 'index.html';
     }
+    
+}
+
+async function handleProfilePage() {
+    console.log("Welcome to your profile!");
+    const jwt = sessionStorage.getItem('jwt');
+    if (!jwt){
+        window.location.href='index.html';
+        return;
+    }
+    console.log("Welcome to your profile! Fetching data...");
+
+    //Define first query
+
+ const dataQuery = `
+query {
+    user {
+        id
+        login
+    }
+    transaction(
+        where: {type: {_eq: "xp"}, path: {_nlike: "%piscine-js%"}}
+        order_by: {createdAt: asc}
+    ) {
+        amount
+        createdAt
+        path
+    }
+    audits_done: transaction_aggregate(
+        where: {type: {_eq: "up"}}
+    ) {
+        aggregate {
+            count
+        }
+    }
+    audits_received: transaction_aggregate(
+        where: {type: {_eq: "down"}}
+    ) {
+        aggregate {
+            count
+        }
+    }
+    # For the project pass/fail ratio graph
+    result(
+        where: {type: {_eq: "project"}}
+    ) {
+        grade
+        path
+    }
+}
+`;
+
+    //Fetch the data
+    const data = await fetchGraphQl(dataQuery);
+
+      // In the next step, we'll display this data
+    if (data) {
+        console.log("Received data:", data);
+        populateProfile(data); // A new function we will write next
+    }
+
     
 }
