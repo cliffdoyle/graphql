@@ -163,3 +163,47 @@ query {
 
     
 }
+
+function populateProfile(data){
+    if (!data){
+        console.error("No data available to populate profile.");
+        return;
+    }
+
+    //Part 1:Populate the text information
+    // 1.Basic Info
+
+    const user =data.user[0]
+
+    document.getElementById('info-username').textContent = user.login;
+     document.getElementById('info-userid').textContent = user.id;
+
+     //2. Total XP
+     const xpTransactions = data.transaction;
+      // .reduce() is a clean way to sum up values in an array
+    const totalXP = xpTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+    // Convert bytes to kB for readability. Using 1000 is common for KB.
+    document.getElementById('info-total-xp').textContent = `${Math.round(totalXP / 1000)} kb`;
+    
+    // 3. Audit Info
+    const auditsDone = data.audits_done.aggregate.count;
+    const auditsReceived = data.audits_received.aggregate.count;
+    document.getElementById('info-audits-done').textContent = auditsDone;
+    document.getElementById('info-audits-received').textContent = auditsReceived;
+
+    generateXpOverTimeGraph(xpTransactions); 
+    generateProjectRatioGraph(data.result);
+}
+
+// These will be empty for now, but defining them prevents errors
+function generateXpOverTimeGraph(transactions) {
+    console.log("Data for XP Graph:", transactions);
+    const graphDiv = document.getElementById('xp-over-time-graph');
+    graphDiv.innerHTML = "<p>XP over time graph will be here.</p>"; // Placeholder
+}
+
+function generateProjectRatioGraph(results) {
+    console.log("Data for Project Ratio Graph:", results);
+    const graphDiv = document.getElementById('project-ratio-graph');
+    graphDiv.innerHTML = "<p>Project ratio graph will be here.</p>"; // Placeholder
+}
