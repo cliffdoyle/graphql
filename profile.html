@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -13,11 +14,13 @@
         </header>
         <main>
             <!-- Section 1: Basic Info -->
+             <div class="profile-sidebar">
              <section id="basic-info">
                 <h2>User Details</h2>
                 <p><strong>Username: </strong><span id="info-username"></span></p>
                 <p><strong> User ID:</strong><span id="info-userid"></span></p>
              </section>
+             </div>
                 <!-- Section 2: XP -->
                    <section id="xp-info">
                 <h2>Total XP</h2>
@@ -40,17 +43,12 @@
                         <!-- Our first SVG graph will be generated here by JavaScript -->
                     </div>
                 </div>
-                <div class="graph-container">
-                    <h3>Project Pass/Fail Ratio</h3>
-                     <div id="project-ratio-graph">
-                        <!-- Our second SVG graph will be generated here by JavaScript -->
-                    </div>
-                </div>
             </section>
+             </div>
 
 
             </main>
-    </div>
+    
     <script src="app.js"></script>
 </body>
 </html>

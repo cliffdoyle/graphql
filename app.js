@@ -10,6 +10,7 @@ if (document.getElementById('login-form')) {
 }
 
 function handleLoginPage(){
+    console.log('login now')
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
 
@@ -122,37 +123,41 @@ async function handleProfilePage() {
 
     //Define first query
 
- const dataQuery = `
-query {
+
+const eventId = 75;
+
+const dataQuery = `
+query GetModuleData {
     user {
         id
         login
     }
     transaction(
-        where: {type: {_eq: "xp"}, path: {_nlike: "%piscine-js%"}}
-        order_by: {createdAt: asc}
+        where: {
+             originEventId: { _eq: ${75} } 
+        },
+        order_by: { createdAt: asc }
     ) {
         amount
         createdAt
         path
     }
-    audits_done: transaction_aggregate(
-        where: {type: {_eq: "up"}}
-    ) {
+    audits_done: transaction_aggregate(where: { type: { _eq: "up" } }) {
         aggregate {
             count
         }
     }
-    audits_received: transaction_aggregate(
-        where: {type: {_eq: "down"}}
-    ) {
+    audits_received: transaction_aggregate(where: { type: { _eq: "down" } }) {
         aggregate {
             count
         }
     }
-    # For the project pass/fail ratio graph
+    # Let's make the result query tight as well
     result(
-        where: {type: {_eq: "project"}}
+        where: {
+            type: { _eq: "project" },
+            eventId: { _eq: ${eventId} } # Filtering projects by the same eventId
+        }
     ) {
         grade
         path
