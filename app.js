@@ -58,3 +58,48 @@ function handleProfilePage() {
     console.log("Welcome to your profile!");
     
 }
+
+
+async function fetchGraphQl(query) {
+    const jwt= sessionStorage.getItem('jwt');
+    if (!jwt){
+        //If no token, redirect to login 
+        window.location.href = 'index.html';
+        return;
+    }
+
+    try{
+        const response = await fetch('https://learn.zone01kisumu.ke/api/graphql-engine/v1/graphql', {
+            method: 'POST',
+            headers: {
+                'content-Type':'application/json',
+                'Authorization':`Bearer ${jwt}`
+            },
+            body: JSON.stringify({query:query})
+
+        });
+        if (!response.ok){
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const jsonResponse = await response.json()
+        if (jsonResponse.errors){
+            // Handle GraphQL-specific errors
+            console.error("GraphQL Errors:", jsonResponse.errors);
+            // Maybe log the user out if the token is expired
+            if (jsonResponse.errors.some(e => e.message.includes("JWTExpired"))) {
+                sessionStorage.removeItem('jwt');
+                window.location.href = 'index.html';
+            }
+            throw new Error('A GraphQL error occurred');
+
+        }
+
+        return jsonResponse.data;
+    } catch (error){
+        console.error('Error fetching GraphQl data:', error)
+          // Maybe redirect to login if there's a fatal error
+        window.location.href = 'index.html';
+    }
+    
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>My Profile</h1>
+            <button id="logout-btn">Logout</button>
+        </header>
+        <main>
+            <!-- Section 1: Basic Info -->
+             <section id="basic-info">
+                <h2>User Details</h2>
+                <p><strong>Username</strong><span id="info-username"></span></p>
+                <p><strong> User ID:</strong><span id="info-userid"></span></p>
+             </section>
+                <!-- Section 2: XP -->
+                   <section id="xp-info">
+                <h2>Total XP</h2>
+                <p><span id="info-total-xp"></span> XP</p>
+            </section>
+
+              <!-- Section 3: Audit Ratio -->
+            <section id="audit-info">
+                <h2>Audit Ratio</h2>
+                <p><strong>Audits Done:</strong> <span id="info-audits-done"></span></p>
+                <p><strong>Audits Received:</strong> <span id="info-audits-received"></span></p>
+            </section>
+
+               <!-- Mandatory Section: Statistics Graphs -->
+            <section id="statistics">
+                <h2>Statistics</h2>
+                <div class="graph-container">
+                    <h3>XP Progress Over Time</h3>
+                    <div id="xp-over-time-graph">
+                        <!-- Our first SVG graph will be generated here by JavaScript -->
+                    </div>
+                </div>
+                <div class="graph-container">
+                    <h3>Project Pass/Fail Ratio</h3>
+                     <div id="project-ratio-graph">
+                        <!-- Our second SVG graph will be generated here by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+
+            </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
