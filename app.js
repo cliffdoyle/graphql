@@ -124,46 +124,52 @@ async function handleProfilePage() {
     //Define first query
 
 
-const eventId = 75;
+ const dataQuery = `
+    query GetProfileAndGraphData {
+        user {
+            id
+            login
 
-const dataQuery = `
-query GetModuleData {
-    user {
-        id
-        login
-    }
-    transaction(
-        where: {
-             originEventId: { _eq: ${75} } 
-        },
-        order_by: { createdAt: asc }
-    ) {
-        amount
-        createdAt
-        path
-    }
-    audits_done: transaction_aggregate(where: { type: { _eq: "up" } }) {
-        aggregate {
-            count
+            # 1. Gets the total XP sum for you. Very efficient.
+            xpTotal: transactions_aggregate(
+                where: {type: {_eq: "xp"}, eventId: {_eq: 75}}
+            ) {
+                aggregate {
+                    sum {
+                        amount
+                    }
+                }
+            }
+
+            # 2. Gets the individual XP transactions needed for the line graph.
+            xpForGraph: transactions(
+                where: {type: {_eq: "xp"}, eventId: {_eq: 75}},
+                order_by: {createdAt: asc}
+            ) {
+                amount
+                createdAt
+            }
+
+            # 3. Gets your audit counts.
+            audits_done: transactions_aggregate(where: {type: {_eq: "up"}}) {
+                aggregate {
+                    count
+                }
+            }
+            audits_received: transactions_aggregate(where: {type: {_eq: "down"}}) {
+                aggregate {
+                    count
+                }
+            }
+
+            # 4. Gets your project results for the second graph.
+            project_results: results(where: {type: {_eq: "project"}, eventId: {_eq: 75}}) {
+                grade
+                path
+            }
         }
     }
-    audits_received: transaction_aggregate(where: { type: { _eq: "down" } }) {
-        aggregate {
-            count
-        }
-    }
-    # Let's make the result query tight as well
-    result(
-        where: {
-            type: { _eq: "project" },
-            eventId: { _eq: ${eventId} } # Filtering projects by the same eventId
-        }
-    ) {
-        grade
-        path
-    }
-}
-`;
+    `;
 
     //Fetch the data
     const data = await fetchGraphQl(dataQuery);
@@ -177,35 +183,36 @@ query GetModuleData {
     
 }
 
-function populateProfile(data){
-    if (!data){
+function populateProfile(data) {
+    if (!data || !data.user || !data.user.length === 0) {
         console.error("No data available to populate profile.");
         return;
     }
 
-    //Part 1:Populate the text information
-    // 1.Basic Info
+    // All the data we need is now neatly organized inside the user object
+    const user = data.user[0];
 
-    const user =data.user[0]
-
+    // --- 1. Basic Info ---
     document.getElementById('info-username').textContent = user.login;
-     document.getElementById('info-userid').textContent = user.id;
+    document.getElementById('info-userid').textContent = user.id;
 
-     //2. Total XP
-     const xpTransactions = data.transaction;
-      // .reduce() is a clean way to sum up values in an array
-    const totalXP = xpTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-    // Convert bytes to kB for readability. Using 1000 is common for KB.
+    // --- 2. Total XP ---
+    // Access the pre-calculated sum directly from the query result.
+    const totalXP = user.xpTotal.aggregate.sum.amount;
     document.getElementById('info-total-xp').textContent = `${Math.round(totalXP / 1000)} kb`;
     
-    // 3. Audit Info
-    const auditsDone = data.audits_done.aggregate.count;
-    const auditsReceived = data.audits_received.aggregate.count;
+    // --- 3. Audit Info ---
+    const auditsDone = user.audits_done.aggregate.count;
+    const auditsReceived = user.audits_received.aggregate.count;
     document.getElementById('info-audits-done').textContent = auditsDone;
     document.getElementById('info-audits-received').textContent = auditsReceived;
 
-    generateXpOverTimeGraph(xpTransactions); 
-    generateProjectRatioGraph(data.result);
+    // --- 4. Call Graph Functions (with correct data) ---
+    // Pass the list of XP transactions for the line graph
+    generateXpOverTimeGraph(user.xpForGraph); 
+
+    // Pass the list of project results for the other graph
+    generateProjectRatioGraph(user.project_results);
 }
 // Replace your entire generateXpOverTimeGraph function with this one.
 function generateXpOverTimeGraph(transactions) {
