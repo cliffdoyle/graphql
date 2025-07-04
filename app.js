@@ -169,10 +169,12 @@ async function handleProfilePage() {
                 }
             }
 
-            # 4. Gets your project results for the second graph.
-            project_results: results(where: {type: {_eq: "project"}, eventId: {_eq: 75}}) {
-                grade
-                path
+             # 4. NEW: Get the size of each audit for the ratio graph
+            auditsDoneData: transactions(where: {type: {_eq: "up"}}, order_by: {createdAt: asc}) {
+                amount
+            }
+            auditsReceivedData: transactions(where: {type: {_eq: "down"}}, order_by: {createdAt: asc}) {
+                amount
             }
         }
     }
@@ -231,7 +233,7 @@ function populateProfile(data) {
     generateXpOverTimeGraph(user.xpForGraph); 
 
     // Pass the list of project results for the other graph
-    generateProjectRatioGraph(user.project_results);
+    generateAuditRatioGraph(user.auditsDoneData, user.auditsReceivedData);
 }
 // Replace your entire generateXpOverTimeGraph function with this one.
 function generateXpOverTimeGraph(transactions) {
@@ -540,92 +542,101 @@ function generateXpOverTimeGraph(transactions) {
     // Add the chart to the page
     graphDiv.appendChild(svg);
 }
-// Replace the old placeholder function in app.js
-function generateProjectRatioGraph(results) {
-    const graphDiv = document.getElementById('project-ratio-graph');
-    graphDiv.innerHTML = ''; // Clear the placeholder
+// Replace the old placeholder function in app.js// ADD THIS ENTIRE NEW FUNCTION
+function generateAuditRatioGraph(auditsDoneData, auditsReceivedData) {
+    const graphDiv = document.getElementById('project-ratio-graph'); // We'll reuse this div
+    graphDiv.innerHTML = ''; // Clear previous content
 
-    // 1. Process the data
-    let passed = 0;
-    let failed = 0;
-    results.forEach(result => {
-        if (result.grade >= 1) {
-            passed++;
-        } else {
-            failed++;
-        }
-    });
-    const total = passed + failed;
-    if (total === 0) {
-        graphDiv.innerHTML = "<p>No project data available.</p>";
-        return;
-    }
+    // 1. Calculate totals
+    const totalDone = auditsDoneData.reduce((sum, tx) => sum + tx.amount, 0);
+    const totalReceived = auditsReceivedData.reduce((sum, tx) => sum + tx.amount, 0);
 
-    const passPercentage = (passed / total);
-    const failPercentage = (failed / total);
+    // Format to MB for display
+    const doneMB = (totalDone / 1000000).toFixed(2);
+    const receivedMB = (totalReceived / 1000000).toFixed(2);
+    
+    // Calculate the audit ratio
+    const ratio = (totalDone / totalReceived).toFixed(2);
 
-    // 2. Setup SVG
+    const data = [
+        { label: 'Audits Done', value: doneMB, color: '#28a745' },      // Green
+        { label: 'Audits Received', value: receivedMB, color: '#007bff' }  // Blue
+    ];
+
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, 'svg');
-    const width = 300;
+    const width = 400;
     const height = 300;
+    const margin = { top: 40, right: 20, bottom: 50, left: 60 };
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
+
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '300px');
 
-    const cx = width / 2; // center x
-    const cy = height / 2; // center y
-    const radius = Math.min(width, height) / 2 * 0.8; // 80% of half the container size
-    let startAngle = -90; // Start at the top
+    const chartGroup = document.createElementNS(svgNS, 'g');
+    chartGroup.setAttribute('transform', `translate(${margin.left}, ${margin.top})`);
+    svg.appendChild(chartGroup);
 
-    // 3. Create Pie Slices (the interesting part)
-    function createSlice(percentage, color) {
-        const endAngle = startAngle + percentage * 360;
+    // 2. Create Scales
+    const maxValue = Math.max(...data.map(d => d.value));
+    const yScale = (value) => chartHeight - (value / maxValue) * chartHeight;
+    const barWidth = chartWidth / data.length / 2; // Make bars slimmer
 
-        // Convert angles to radians for sin/cos
-        const start = (a) => a * Math.PI / 180;
-        const x1 = cx + radius * Math.cos(start(startAngle));
-        const y1 = cy + radius * Math.sin(start(startAngle));
-        const x2 = cx + radius * Math.cos(start(endAngle));
-        const y2 = cy + radius * Math.sin(start(endAngle));
+    // 3. Create Bars
+    data.forEach((d, i) => {
+        const barX = (i * (chartWidth / data.length)) + (chartWidth / data.length - barWidth) / 2;
+        
+        const rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('x', barX);
+        rect.setAttribute('y', yScale(d.value));
+        rect.setAttribute('width', barWidth);
+        rect.setAttribute('height', chartHeight - yScale(d.value));
+        rect.setAttribute('fill', d.color);
+        chartGroup.appendChild(rect);
 
-        // This string is the 'd' attribute for the <path> element
-        // It's a command to the SVG renderer:
-        // M = Move to (starting point)
-        // L = Line to (the center)
-        // A = Arc to (the outer edge of the slice)
-        // Z = Close path
-        const largeArcFlag = percentage > 0.5 ? 1 : 0;
-        const d = `M ${cx},${cy} L ${x1},${y1} A ${radius},${radius} 0 ${largeArcFlag} 1 ${x2},${y2} Z`;
+        // Add value label on top of the bar
+        const valueText = document.createElementNS(svgNS, 'text');
+        valueText.setAttribute('x', barX + barWidth / 2);
+        valueText.setAttribute('y', yScale(d.value) - 5);
+        valueText.setAttribute('text-anchor', 'middle');
+        valueText.setAttribute('font-size', '12');
+        valueText.setAttribute('fill', '#333');
+        valueText.textContent = `${d.value} MB`;
+        chartGroup.appendChild(valueText);
+        
+        // Add category label below the bar
+        const labelText = document.createElementNS(svgNS, 'text');
+        labelText.setAttribute('x', barX + barWidth / 2);
+        labelText.setAttribute('y', chartHeight + 20);
+        labelText.setAttribute('text-anchor', 'middle');
+        labelText.setAttribute('font-size', '12');
+        labelText.setAttribute('fill', '#555');
+        labelText.textContent = d.label;
+        chartGroup.appendChild(labelText);
+    });
 
-        const path = document.createElementNS(svgNS, 'path');
-        path.setAttribute('d', d);
-        path.setAttribute('fill', color);
-        svg.appendChild(path);
+    // 4. Create Y-Axis
+    const yAxis = document.createElementNS(svgNS, 'g');
+    const yAxisLine = document.createElementNS(svgNS, 'line');
+    yAxisLine.setAttribute('x1', 0);
+    yAxisLine.setAttribute('y1', 0);
+    yAxisLine.setAttribute('x2', 0);
+    yAxisLine.setAttribute('y2', chartHeight);
+    yAxisLine.setAttribute('stroke', '#ccc');
+    yAxis.appendChild(yAxisLine);
+    chartGroup.appendChild(yAxis);
 
-        // Move the startAngle for the next slice
-        startAngle = endAngle;
-    }
-
-    createSlice(passPercentage, '#28a745'); // Green for pass
-    createSlice(failPercentage, '#dc3545'); // Red for fail
-
-    // 4. Add a legend
-    const legend = document.createElement('div');
-    legend.style.display = 'flex';
-    legend.style.justifyContent = 'center';
-    legend.style.marginTop = '10px';
-    legend.innerHTML = `
-        <div style="margin-right: 20px;">
-            <span style="display:inline-block; width:10px; height:10px; background-color:#28a745; border-radius: 50%;"></span>
-            Passed: ${passed} (${(passPercentage * 100).toFixed(1)}%)
-        </div>
-        <div>
-            <span style="display:inline-block; width:10px; height:10px; background-color:#dc3545; border-radius: 50%;"></span>
-            Failed: ${failed} (${(failPercentage * 100).toFixed(1)}%)
-        </div>
-    `;
-
+    // 5. Add a title for the whole chart and the ratio
+    const titleText = document.createElementNS(svgNS, 'text');
+    titleText.setAttribute('x', width / 2);
+    titleText.setAttribute('y', 20); // Position at the top
+    titleText.setAttribute('text-anchor', 'middle');
+    titleText.setAttribute('font-size', '16');
+    titleText.setAttribute('font-weight', 'bold');
+    titleText.textContent = `Audit Ratio: ${ratio}`;
+    svg.appendChild(titleText);
+    
     graphDiv.appendChild(svg);
-    graphDiv.appendChild(legend);
 }
