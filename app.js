@@ -8,23 +8,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
 })
 
-
-
-
-//Check which page we are on 
-// if (document.getElementById('login-form')) {
-//     //we are on the login page
-//      //we are on the login page
-//     document.getElementById('login-page').style.display = 'block';
-//     document.getElementById('profile-page').style.display = 'none';
-//     handleLoginPage();
-// }else if (document.querySelector('header h1').textContent === 'My Profile'){
-//     //We are on the profile page
-//     document.getElementById('login-page').style.display = 'none';
-//     document.getElementById('profile-page').style.display = 'block';
-//     handleProfilePage();
-// }
-
 function handleLoginPage(){
     console.log('login now')
     const loginForm = document.getElementById('login-form');
@@ -49,7 +32,12 @@ function handleLoginPage(){
             });
             if (!response.ok){
                 //If the response is not 200, it's an error
-                const errorData=await response.json();
+                const errorData =await response.json();
+                const err =document.getElementById('error-message')
+                // Set the error message and display it
+                //err.textContent = 'Invalid username or password';
+                err.style.display = 'block';
+
                 throw new Error(errorData.error) || 'Invalid credentials'
             }
             //If login is successful, we get a JWT
@@ -145,6 +133,9 @@ async function handleProfilePage() {
         user {
             id
             login
+            firstName
+            lastName
+            email
 
             # 1. Gets the total XP sum for you. Very efficient.
             xpTotal: transactions_aggregate(
@@ -209,8 +200,20 @@ function populateProfile(data) {
     const user = data.user[0];
 
     // --- 1. Basic Info ---
+    const firstname=user.firstName;
+    const lastname=user.lastName;
+    const fullname=`${firstname+lastname}`
+    const email =user.email;
+    const initialOne=firstname[0]
+    const initialTwo=lastname[0]
+    const initial= `${initialOne} ${initialTwo}`
+    document.getElementById('profile-initials').textContent=initial
     document.getElementById('info-username').textContent = user.login;
-    document.getElementById('info-userid').textContent = user.id;
+    document.getElementById('info-userid').textContent = email;
+    document.getElementById('info-fullname').textContent = fullname;
+
+    
+
 
     // --- 2. Total XP ---
     // Access the pre-calculated sum directly from the query result.
