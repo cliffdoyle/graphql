@@ -1,13 +1,29 @@
 
 
+document.addEventListener('DOMContentLoaded',()=>{
+    if(document.getElementById('login-form')){
+        handleLoginPage()
+    }else if(document.getElementById('profile-page')){
+        handleProfilePage()
+    }
+})
+
+
+
+
 //Check which page we are on 
-if (document.getElementById('login-form')) {
-    //we are on the login page
-    handleLoginPage();
-}else if (document.querySelector('header h1').textContent === 'My Profile'){
-    //We are on the profile page
-    handleProfilePage();
-}
+// if (document.getElementById('login-form')) {
+//     //we are on the login page
+//      //we are on the login page
+//     document.getElementById('login-page').style.display = 'block';
+//     document.getElementById('profile-page').style.display = 'none';
+//     handleLoginPage();
+// }else if (document.querySelector('header h1').textContent === 'My Profile'){
+//     //We are on the profile page
+//     document.getElementById('login-page').style.display = 'none';
+//     document.getElementById('profile-page').style.display = 'block';
+//     handleProfilePage();
+// }
 
 function handleLoginPage(){
     console.log('login now')

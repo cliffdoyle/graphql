@@ -3,52 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
+    <title>Zone01 Profile</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>My Profile</h1>
-            <button id="logout-btn">Logout</button>
-        </header>
-        <main>
-            <!-- Section 1: Basic Info -->
-             <div class="profile-sidebar">
-             <section id="basic-info">
-                <h2>User Details</h2>
-                <p><strong>Username: </strong><span id="info-username"></span></p>
-                <p><strong> User ID:</strong><span id="info-userid"></span></p>
-             </section>
-             </div>
-                <!-- Section 2: XP -->
-                   <section id="xp-info">
-                <h2>Total XP</h2>
-                <p><span id="info-total-xp"></span> XP</p>
-            </section>
-
-              <!-- Section 3: Audit Ratio -->
-            <section id="audit-info">
-                <h2>Audit Ratio</h2>
-                <p><strong>Audits Done:</strong> <span id="info-audits-done"></span></p>
-                <p><strong>Audits Received:</strong> <span id="info-audits-received"></span></p>
-            </section>
-
-               <!-- Mandatory Section: Statistics Graphs -->
-            <section id="statistics">
-                <h2>Statistics</h2>
-                <div class="graph-container">
-                    <h3>XP Progress Over Time</h3>
-                    <div id="xp-over-time-graph">
-                        <!-- Our first SVG graph will be generated here by JavaScript -->
+        <!-- Profile Page Content -->
+        <div id="profile-page">
+            <header>
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <span class="profile-avatar-text" id="profile-initials">...</span>
+                    </div>
+                    <div class="profile-info">
+                        <h1 id="profile-fullname">My Profile</h1>
+                        <p class="profile-subtitle">Software Engineer - Full Stack Developer</p>
+                        <div class="school-badge">
+                            <span>🎓</span>
+                            Zone01 Kisumu
+                        </div>
                     </div>
                 </div>
-            </section>
-             </div>
+                <button id="logout-btn">Logout</button>
+            </header>
 
+            <main>
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <!-- User Details Card -->
+                    <div class="card user-details-card">
+                        <div class="card-header">
+                            <div class="card-icon">👤</div>
+                            <h2 class="card-title">My Details</h2>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Full Name</span>
+                            <span class="stat-value" id="info-fullname">Cliff Oyoh Omollo</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Username</span>
+                            <span class="stat-value" id="info-username">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">User ID</span>
+                            <span class="stat-value" id="info-userid">Loading...</span>
+                        </div>
+                    </div>
 
+                    <!-- XP Card -->
+                    <div class="card xp-card">
+                        <div class="card-header">
+                            <div class="card-icon">⚡</div>
+                            <h2 class="card-title">Experience Points</h2>
+                        </div>
+                        <div class="xp-display">
+                            <span class="xp-amount" id="info-total-xp">Loading...</span>
+                            <span class="xp-label">Total XP</span>
+                        </div>
+                    </div>
+
+                    <!-- Audit Card -->
+                    <div class="card audit-card">
+                        <div class="card-header">
+                            <div class="card-icon">📊</div>
+                            <h2 class="card-title">Audit Statistics</h2>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Audits Done</span>
+                            <span class="stat-value" id="info-audits-done">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Audits Received</span>
+                            <span class="stat-value" id="info-audits-received">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Section -->
+                <!-- <div class="statistics-section"> -->
+                    <div class="stats-grid">
+                        <div class="graph-container">
+                            <h3 class="graph-title">XP Progress Over Time</h3>
+                            <div id="xp-over-time-graph">
+                               <!-- XP graph will be generated here -->
+                            </div>
+                        </div>
+                   
+                        </div>
+                    </div>
+                <!-- </div> -->
             </main>
-    
+        </div>
+    </div>
     <script src="app.js"></script>
 </body>
 </html>
